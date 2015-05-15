@@ -12,8 +12,54 @@ app.get('/', function(request, response) {
 
 
 app.get('/markets', function(request, response) {
-  var result = 'markets'
-  response.send(result);
+  var result = {
+    "_id":1005969,
+    "MarketName":"\"Y Not Wednesday Farmers Market at Town Center\"",
+    "Website":"http://www.sandlercenter.org/index/ynotwednesdays",
+    "street":"201 Market Street,",
+    "city":"Virginia Beach",
+    "County":"Virginia Beach",
+    "State":"Virginia",
+    "zip":23462,
+    "Season1Date":"June to August",
+    "Season1Time":"Wed:5:00 PM - 8:00 PM;",
+    "Season2Date":"",
+    "Season2Time":"",
+    "Season3Date":"",
+    "Season3Time":"",
+    "Season4Date":"",
+    "Season4Time":"",
+    "lng":-76.135361,
+    "lat":36.841885,
+    "Location":"Other",
+    "Credit":"Y",
+    "WIC":"N",
+    "WICcash":"N",
+    "SFMNP":"N",
+    "SNAP":"N",
+    "Bakedgoods":"Y",
+    "Cheese":"Y",
+    "Crafts":"N",
+    "Flowers":"Y",
+    "Eggs":"Y",
+    "Seafood":"Y",
+    "Herbs":"N",
+    "Vegetables":"Y",
+    "Honey":"Y",
+    "Jams":"Y",
+    "Maple":"N",
+    "Meat":"N",
+    "Nursery":"N",
+    "Nuts":"N",
+    "Plants":"N",
+    "Poultry":"N",
+    "Prepared":"Y",
+    "Soap":"Y",
+    "Trees":"N",
+    "Wine":"Y",
+    "updateTime":"5/5/2012 17:56"
+  };
+  response.json(result);
 });
 
 
