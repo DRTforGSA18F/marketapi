@@ -1,70 +1,59 @@
-var express = require('express');
+var express = require('express'),
+    mongoskin = require('mongoskin'),
+    bodyParser = require('body-parser'),
+    logger = require('morgan');
+
 var app = express();
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
+app.use(logger('dev'));
+
 var cool = require('cool-ascii-faces');
-var db = require('./models/mongolab.js');
+//var db = require('./models/mongolab.js');
+
+var db = mongoskin.db('mongodb://drtuser:Go*4@ds031832.mongolab.com:31832/farmersmarket', {
+    safe: true
+});
 
 app.set('port', (process.env.PORT || 5000));
 
-app.get('/', function(request, response) {
-  var result = 'Hello World'
-  response.send(result);
+
+app.use(function(req, res, next) {
+    req.db = db;
+    next();
 });
 
 
-app.get('/markets', function(request, response) {
-  var result = {
-    "_id":1005969,
-    "MarketName":"\"Y Not Wednesday Farmers Market at Town Center\"",
-    "Website":"http://www.sandlercenter.org/index/ynotwednesdays",
-    "street":"201 Market Street,",
-    "city":"Virginia Beach",
-    "County":"Virginia Beach",
-    "State":"Virginia",
-    "zip":23462,
-    "Season1Date":"June to August",
-    "Season1Time":"Wed:5:00 PM - 8:00 PM;",
-    "Season2Date":"",
-    "Season2Time":"",
-    "Season3Date":"",
-    "Season3Time":"",
-    "Season4Date":"",
-    "Season4Time":"",
-    "lng":-76.135361,
-    "lat":36.841885,
-    "Location":"Other",
-    "Credit":"Y",
-    "WIC":"N",
-    "WICcash":"N",
-    "SFMNP":"N",
-    "SNAP":"N",
-    "Bakedgoods":"Y",
-    "Cheese":"Y",
-    "Crafts":"N",
-    "Flowers":"Y",
-    "Eggs":"Y",
-    "Seafood":"Y",
-    "Herbs":"N",
-    "Vegetables":"Y",
-    "Honey":"Y",
-    "Jams":"Y",
-    "Maple":"N",
-    "Meat":"N",
-    "Nursery":"N",
-    "Nuts":"N",
-    "Plants":"N",
-    "Poultry":"N",
-    "Prepared":"Y",
-    "Soap":"Y",
-    "Trees":"N",
-    "Wine":"Y",
-    "updateTime":"5/5/2012 17:56"
-  };
-  response.json(result);
+app.get('/', function(req, res) {
+    var result = 'Hello World'
+    response.send(result);
 });
 
+
+app.get('/market/:id', function(req, res) {
+    req.db.collection('markets').find({"_id": parseFloat(req.params.id)}).toArray(function(err, items) {
+        if (err) {
+            console.log(err);
+        } else {
+            res.json(items);
+        }
+    });
+});
+
+app.get('/markets', function(req, res) {
+    req.db.collection('markets').find().toArray(function(err, items) {
+        if (err) {
+            console.log(err);
+        } else {
+            res.json(items);
+        }
+    });
+});
 
 
 
 app.listen(app.get('port'), function() {
-  console.log("Node app is running on port:" + app.get('port'))
+    console.log("Node app is running on port:" + app.get('port'))
 })
