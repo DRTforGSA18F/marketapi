@@ -28,8 +28,49 @@ app.use(function(req, res, next) {
 
 app.get('/', function(req, res) {
     var result = 'Hello World'
-    response.send(result);
+    res.send(result);
 });
+
+//markets/loc=type&zip=value
+
+app.get('/markets/', function(req, res) {
+    //look for the location parameter and zipcode parameter
+    var zipcode = req.query.zip;
+    var loctype = req.query.loc;
+    console.log(zipcode);
+    console.log(loctype);
+    //res.send(zipcode);
+
+    req.db.collection('markets').find({"zip": parseFloat(zipcode)}).toArray(function(err, items) {
+        if (err) {
+            console.log(err);
+        } else {
+            res.json(items);
+        }
+
+    });
+});
+
+
+/* Example URLs:
+/markets/?loc=zip&zip=23462
+/markets/?loc=state&state=VA
+/markets/?loc=city&state=VA&city=Fairfax
+
+
+//markets/loc=type&zip=value
+
+
+/*app.get('/markets/', returnZIP);
+
+function returnZIP(req, res) {
+    //look for the location parameter and zipcode parameter
+    var zipcode = req.query.zip;
+    var loctype = req.query.loc;
+    console.log(zipcode);
+    console.log(loctype);
+    res.send(zipcode);
+}*/
 
 
 app.get('/market/:id', function(req, res) {
