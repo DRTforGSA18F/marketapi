@@ -31,47 +31,62 @@ app.get('/', function(req, res) {
     res.send(result);
 });
 
-//markets/loc=type&zip=value
 
-app.get('/markets/', function(req, res) {
-    //look for the location parameter and zipcode parameter
-    var zipcode = req.query.zip;
+/* Location API 
+Expect URL to be of format: markets/?loc=type&[zip, city, or state]=value.  Examples:
+markets/?loc=zip&zip=30135
+markets/?loc=state&state=Georgia
+markets/?loc=city&state=Georgia&city=Douglasville
+*/
+app.get('/markets/', function(req, res) {  
     var loctype = req.query.loc;
-    console.log(zipcode);
-    console.log(loctype);
-    //res.send(zipcode);
+    console.log("loctype: " + loctype);
+    
+    //Expect URL to be: markets/?loc=zip&zip=30135
+    if (loctype=="zip") {
+        var zipcode = req.query.zip;
+        console.log("zip: " + zipcode);
+        req.db.collection('markets').find({"zip": parseFloat(zipcode)}).toArray(function(err, items) {
+            if (err) {
+                console.log(err);
+            } else {
+                res.json(items);
+            }
 
-    req.db.collection('markets').find({"zip": parseFloat(zipcode)}).toArray(function(err, items) {
-        if (err) {
-            console.log(err);
-        } else {
-            res.json(items);
-        }
+        });    
+    }
+    //Expect URL to be: markets/?loc=state&state=Georgia
+    else if (loctype=="state") {
+        var state = req.query.state;
+        console.log("state: " + state);
+        req.db.collection('markets').find({"State": state}).toArray(function(err, items) {
+            if (err) {
+                console.log(err);
+            } else {
+                res.json(items);
+            }
 
-    });
+        });
+    }
+    //Expect URL to be: markets/?loc=city&state=Georgia&city=Douglasville
+    else if (loctype=="city") {
+        var state = req.query.state;
+        var city = req.query.city;
+        console.log("state: " + state);
+        console.log("city: " + city);
+        req.db.collection('markets').find({"State": state,"city": city}).toArray(function(err, items) {
+            if (err) {
+                console.log(err);
+            } else {
+                res.json(items);
+            }
+
+        });
+    }
+    else {
+        console.log("Error - Unhandled loctype: " + loctype +". Valid loctypes are zip, state, or city");
+    }
 });
-
-
-/* Example URLs:
-/markets/?loc=zip&zip=23462
-/markets/?loc=state&state=VA
-/markets/?loc=city&state=VA&city=Fairfax
-
-
-//markets/loc=type&zip=value
-
-
-/*app.get('/markets/', returnZIP);
-
-function returnZIP(req, res) {
-    //look for the location parameter and zipcode parameter
-    var zipcode = req.query.zip;
-    var loctype = req.query.loc;
-    console.log(zipcode);
-    console.log(loctype);
-    res.send(zipcode);
-}*/
-
 
 app.get('/market/:id', function(req, res) {
     req.db.collection('markets').find({"_id": parseFloat(req.params.id)}).toArray(function(err, items) {
@@ -92,8 +107,6 @@ app.get('/markets', function(req, res) {
         }
     });
 });
-
-
 
 app.listen(app.get('port'), function() {
     console.log("Node app is running on port:" + app.get('port'))
