@@ -13,7 +13,7 @@ app.use(logger('dev'));
 var cool = require('cool-ascii-faces');
 //var db = require('./models/mongolab.js');
 
-var db = mongoskin.db('mongodb://drtuser:Go*4@ds031832.mongolab.com:31832/farmersmarket', {
+var db = mongoskin.db('mongodb://drtuser:Go*4@ds031942.mongolab.com:31942/farmersmarkets', {
     safe: true
 });
 
@@ -37,6 +37,7 @@ Expect URL to be of format: markets/?loc=type&[zip, city, or state]=value.  Exam
 markets/?loc=zip&zip=30135
 markets/?loc=state&state=Georgia
 markets/?loc=city&state=Georgia&city=Douglasville
+markets/?loc=proximity&lat=x.xx&lng=x.xx&dist=x
 */
 app.get('/markets/', function(req, res) {  
     var loctype = req.query.loc;
@@ -46,7 +47,7 @@ app.get('/markets/', function(req, res) {
     if (loctype=="zip") {
         var zipcode = req.query.zip;
         console.log("zip: " + zipcode);
-        req.db.collection('markets').find({"zip": parseFloat(zipcode)}).toArray(function(err, items) {
+        req.db.collection('markets').find({"zip": zipcode}).toArray(function(err, items) {
             if (err) {
                 console.log(err);
             } else {
@@ -59,7 +60,7 @@ app.get('/markets/', function(req, res) {
     else if (loctype=="state") {
         var state = req.query.state;
         console.log("state: " + state);
-        req.db.collection('markets').find({"State": state}).toArray(function(err, items) {
+        req.db.collection('markets').find({"state": state}).toArray(function(err, items) {
             if (err) {
                 console.log(err);
             } else {
@@ -74,7 +75,7 @@ app.get('/markets/', function(req, res) {
         var city = req.query.city;
         console.log("state: " + state);
         console.log("city: " + city);
-        req.db.collection('markets').find({"State": state,"city": city}).toArray(function(err, items) {
+        req.db.collection('markets').find({"state": state,"city": city}).toArray(function(err, items) {
             if (err) {
                 console.log(err);
             } else {
@@ -83,19 +84,58 @@ app.get('/markets/', function(req, res) {
 
         });
     }
-    else {
-        console.log("Error - Unhandled loctype: " + loctype +". Valid loctypes are zip, state, or city");
+    //Expect URL to be: markets/?loc=proximity&lat=x.xx&lng=x.xx&dist=x
+    else if (loctype=="proximity") {
+        
+       var latitude = parseFloat(req.query.lat);
+        var longitude = parseFloat(req.query.lng);
+        var distance = parseInt(req.query.dist);
+        var searchCriteria = [{
+            $geoNear: {
+                near: [longitude, latitude],
+                distanceField: 'Distance',
+                maxDistance: ((distance / 1.25) / 3959),
+                spherical: true,
+                distanceMultiplier: (3959 * 1.25)
+            }
+        }];
+
+        db.collection('markets').aggregate(searchCriteria, function(err, items) {
+            if (err) {
+                res.send(500, {
+                    'error': "Server Error - While trying to query db for proximity search." + err
+                });
+            } else {
+                res.json(items);
+            }
+        });
+
+
+
+
+
+        /*req.db.collection('markets').find({"state": state}).toArray(function(err, items) {
+            if (err) {
+                console.log(err);
+            } else {
+                res.json(items);
+            }
+            
+
+        });*/ 
+    } else {
+        res.send("Error - Unhandled loctype: " + loctype +". Valid loctypes are zip, state, or city");
     }
 });
 
 app.get('/market/:id', function(req, res) {
-    req.db.collection('markets').find({"_id": parseFloat(req.params.id)}).toArray(function(err, items) {
+    req.db.collection('markets').find({"_id": req.params.id}).toArray(function(err, items) {
         if (err) {
             console.log(err);
         } else {
             res.json(items);
         }
-    });
+    })
 });
 
 app.get('/markets', function(req, res) {
