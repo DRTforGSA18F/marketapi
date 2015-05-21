@@ -10,9 +10,6 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(logger('dev'));
 
-var cool = require('cool-ascii-faces');
-//var db = require('./models/mongolab.js');
-
 var db = mongoskin.db('mongodb://drtuser:Go*4@ds031942.mongolab.com:31942/farmersmarkets', {
     safe: true
 });
@@ -84,7 +81,7 @@ app.get('/markets/', function(req, res) {
 
         });
     }
-    //Expect URL to be: markets/?loc=proximity&lat=x.xx&lng=x.xx&dist=x
+    //Expect URL to be: /markets/?loc=proximity&lat=36.841885&lng=-76.135361&dist=5
     else if (loctype=="proximity") {
         
        var latitude = parseFloat(req.query.lat);
@@ -93,7 +90,7 @@ app.get('/markets/', function(req, res) {
         var searchCriteria = [{
             $geoNear: {
                 near: [longitude, latitude],
-                distanceField: 'Distance',
+                distanceField: 'distance',
                 maxDistance: ((distance / 1.25) / 3959),
                 spherical: true,
                 distanceMultiplier: (3959 * 1.25)
@@ -110,19 +107,6 @@ app.get('/markets/', function(req, res) {
             }
         });
 
-
-
-
-
-        /*req.db.collection('markets').find({"state": state}).toArray(function(err, items) {
-            if (err) {
-                console.log(err);
-            } else {
-                res.json(items);
-            }
-            
-
-        });*/ 
     } else {
         res.send("Error - Unhandled loctype: " + loctype +". Valid loctypes are zip, state, or city");
     }
